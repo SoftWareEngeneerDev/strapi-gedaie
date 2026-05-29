@@ -610,6 +610,129 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiDecisionEdgeDecisionEdge
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'decision_edges';
+  info: {
+    description: "Lien entre deux n\u0153uds d'un arbre d\u00E9cisionnel";
+    displayName: 'Decision Edge';
+    pluralName: 'decision-edges';
+    singularName: 'decision-edge';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    decision_tree: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::decision-tree.decision-tree'
+    >;
+    edgeId: Schema.Attribute.String & Schema.Attribute.Required;
+    label: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::decision-edge.decision-edge'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    source: Schema.Attribute.String & Schema.Attribute.Required;
+    target: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiDecisionNodeDecisionNode
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'decision_nodes';
+  info: {
+    description: "N\u0153ud d'un arbre d\u00E9cisionnel (question, solution, ticket, end)";
+    displayName: 'Decision Node';
+    pluralName: 'decision-nodes';
+    singularName: 'decision-node';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    content: Schema.Attribute.JSON;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    decision_tree: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::decision-tree.decision-tree'
+    >;
+    label: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::decision-node.decision-node'
+    > &
+      Schema.Attribute.Private;
+    nodeId: Schema.Attribute.String & Schema.Attribute.Required;
+    positionX: Schema.Attribute.Float;
+    positionY: Schema.Attribute.Float;
+    publishedAt: Schema.Attribute.DateTime;
+    type: Schema.Attribute.Enumeration<
+      ['question', 'solution', 'ticket', 'end']
+    > &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiDecisionTreeDecisionTree
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'decision_trees';
+  info: {
+    description: "Conteneur global de l'arbre d\u00E9cisionnel FAQ";
+    displayName: 'Decision Tree';
+    pluralName: 'decision-trees';
+    singularName: 'decision-tree';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    decision_edges: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::decision-edge.decision-edge'
+    >;
+    decision_nodes: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::decision-node.decision-node'
+    >;
+    incident_type: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::incident-type.incident-type'
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::decision-tree.decision-tree'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'name'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    version: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<1>;
+  };
+}
+
 export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   collectionName: 'globals';
   info: {
@@ -636,6 +759,78 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
     publishedAt: Schema.Attribute.DateTime;
     siteDescription: Schema.Attribute.Text & Schema.Attribute.Required;
     siteName: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiIncidentTypeIncidentType
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'incident_types';
+  info: {
+    description: "Type d'incident li\u00E9 \u00E0 un \u00E9quipement ou produit";
+    displayName: 'Incident Type';
+    pluralName: 'incident-types';
+    singularName: 'incident-type';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    decision_trees: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::decision-tree.decision-tree'
+    >;
+    description: Schema.Attribute.Text;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::incident-type.incident-type'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'name'>;
+    target: Schema.Attribute.Relation<'manyToOne', 'api::target.target'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiTargetTarget extends Struct.CollectionTypeSchema {
+  collectionName: 'targets';
+  info: {
+    description: 'Produit ou \u00E9quipement cibl\u00E9 par la FAQ';
+    displayName: 'Target';
+    pluralName: 'targets';
+    singularName: 'target';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    incident_types: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::incident-type.incident-type'
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::target.target'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'name'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1158,7 +1353,12 @@ declare module '@strapi/strapi' {
       'api::article.article': ApiArticleArticle;
       'api::author.author': ApiAuthorAuthor;
       'api::category.category': ApiCategoryCategory;
+      'api::decision-edge.decision-edge': ApiDecisionEdgeDecisionEdge;
+      'api::decision-node.decision-node': ApiDecisionNodeDecisionNode;
+      'api::decision-tree.decision-tree': ApiDecisionTreeDecisionTree;
       'api::global.global': ApiGlobalGlobal;
+      'api::incident-type.incident-type': ApiIncidentTypeIncidentType;
+      'api::target.target': ApiTargetTarget;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

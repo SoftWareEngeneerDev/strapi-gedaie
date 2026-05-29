@@ -1,0 +1,43 @@
+{
+  "kind": "collectionType",
+  "collectionName": "decision_nodes",
+  "info": {
+    "singularName": "decision-node",
+    "pluralName": "decision-nodes",
+    "displayName": "Decision Node",
+    "description": "Nœud d'un arbre décisionnel (question, solution, ticket, end)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nodeId": {
+      "type": "string",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": ["question", "solution", "ticket", "end"],
+      "required": true
+    },
+    "label": {
+      "type": "string"
+    },
+    "content": {
+      "type": "json"
+    },
+    "positionX": {
+      "type": "float"
+    },
+    "positionY": {
+      "type": "float"
+    },
+    "decision_tree": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::decision-tree.decision-tree",
+      "inversedBy": "decision_nodes"
+    }
+  }
+}

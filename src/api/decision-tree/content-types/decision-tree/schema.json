@@ -1,0 +1,46 @@
+{
+  "kind": "collectionType",
+  "collectionName": "decision_trees",
+  "info": {
+    "singularName": "decision-tree",
+    "pluralName": "decision-trees",
+    "displayName": "Decision Tree",
+    "description": "Conteneur global de l'arbre décisionnel FAQ"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "name"
+    },
+    "version": {
+      "type": "integer",
+      "default": 1
+    },
+    "incident_type": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::incident-type.incident-type",
+      "inversedBy": "decision_trees"
+    },
+    "decision_nodes": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::decision-node.decision-node",
+      "mappedBy": "decision_tree"
+    },
+    "decision_edges": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::decision-edge.decision-edge",
+      "mappedBy": "decision_tree"
+    }
+  }
+}

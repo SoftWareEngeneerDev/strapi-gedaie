@@ -1,0 +1,33 @@
+{
+  "kind": "collectionType",
+  "collectionName": "targets",
+  "info": {
+    "singularName": "target",
+    "pluralName": "targets",
+    "displayName": "Target",
+    "description": "Produit ou équipement ciblé par la FAQ"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "name"
+    },
+    "description": {
+      "type": "text"
+    },
+    "incident_types": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::incident-type.incident-type",
+      "mappedBy": "target"
+    }
+  }
+}
