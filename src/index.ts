@@ -11,14 +11,20 @@ import type { Core } from '@strapi/strapi';
  *     En production, restreindre ces actions au rôle "Authenticated".
  */
 const PUBLIC_PERMISSIONS: Record<string, string[]> = {
-  // Lecture seule — Angular frontend
-  'target':        ['find', 'findOne'],
-  'incident-type': ['find', 'findOne'],
-  'decision-node': ['find', 'findOne'],
-  'decision-edge': ['find', 'findOne'],
+  // Target — lecture + création (Builder peut créer une nouvelle cible)
+  'target': ['find', 'findOne', 'create'],
 
-  // Lecture + écriture — React Flow Builder (MVP : public, à sécuriser en prod)
+  // IncidentType — lecture + création (Builder peut créer un nouvel incident)
+  'incident-type': ['find', 'findOne', 'create'],
+
+  // DecisionTree — lecture + création + modification + endpoint custom
   'decision-tree': ['find', 'findOne', 'create', 'update', 'saveTree'],
+
+  // DecisionNode — lecture + création + suppression (géré par save-tree)
+  'decision-node': ['find', 'findOne', 'create', 'delete'],
+
+  // DecisionEdge — lecture + création + suppression (géré par save-tree)
+  'decision-edge': ['find', 'findOne', 'create', 'delete'],
 };
 
 // ---------------------------------------------------------------------------

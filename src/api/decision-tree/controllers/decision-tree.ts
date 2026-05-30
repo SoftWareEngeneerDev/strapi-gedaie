@@ -9,19 +9,23 @@ export default factories.createCoreController('api::decision-tree.decision-tree'
   /**
    * PUT /api/decision-trees/:id/save-tree
    *
-   * Sauvegarde l'arbre complet (nœuds + liens).
-   * N'essaie PAS de faire findOne() du tree — cela échoue dans Strapi v5
-   * quand le document a été créé via l'API REST publique.
-   * On va droit au but : nettoyer les anciens nodes/edges puis recréer.
+   * Sauvegarde l'arbre complet (nœuds + liens) en une seule opération.
+   * Si :id vaut "new", l'arbre est créé automatiquement.
+   *
+   * Body attendu :
+   * {
+   *   name            : "Mon arbre",         ← requis si id === "new"
+   *   incidentTypeId  : "xyz789",            ← optionnel, lie l'arbre à un incident
+   *   nodes           : [{ id, type, data, position }],
+   *   edges           : [{ id, source, target, label }]
+   * }
    */
   async saveTree(ctx) {
-    const { id: documentId } = ctx.params;
+    const { id } = ctx.params;
 
-    if (!documentId) {
-      return ctx.badRequest('Le paramètre :id est requis.');
-    }
-
-    const { nodes = [], edges = [] } = ctx.request.body as {
+    const { name, incidentTypeId, nodes = [], edges = [] } = ctx.request.body as {
+      name?:           string;
+      incidentTypeId?: string;
       nodes: Array<{
         id: string;
         type: string;
@@ -38,13 +42,56 @@ export default factories.createCoreController('api::decision-tree.decision-tree'
     };
 
     try {
-      // ── 1. Supprimer les nœuds existants liés à cet arbre ────────────────
+      let documentId: string;
+
+      // ── 1. Créer ou récupérer l'arbre ─────────────────────────────────────
+      if (!id || id === 'new') {
+
+        if (!name) {
+          return ctx.badRequest('Le champ "name" est requis pour créer un nouvel arbre.');
+        }
+
+        // Données de base de l'arbre
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const treeData: Record<string, any> = { name, version: 1 };
+
+        // Lier à l'IncidentType si fourni
+        if (incidentTypeId) {
+          treeData.incident_type = incidentTypeId;
+        }
+
+        const newTree = await strapi.documents('api::decision-tree.decision-tree').create({
+          data: treeData as any,
+        });
+
+        documentId = newTree.documentId;
+        strapi.log.info(`✅ Arbre créé : "${name}" → documentId: ${documentId}`);
+
+        if (incidentTypeId) {
+          strapi.log.info(`🔗 Lié à l'IncidentType : ${incidentTypeId}`);
+        }
+
+      } else {
+
+        // Arbre existant — mettre à jour l'incidentType si fourni
+        if (incidentTypeId) {
+          await strapi.documents('api::decision-tree.decision-tree').update({
+            documentId: id,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            data: { incident_type: incidentTypeId } as any,
+          });
+        }
+
+        documentId = id;
+      }
+
+      // ── 2. Supprimer les nœuds existants ─────────────────────────────────
       const existingNodes = await strapi.documents('api::decision-node.decision-node').findMany({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         filters: { decision_tree: { documentId: { $eq: documentId } } } as any,
       });
 
-      strapi.log.info(`🗑️  ${existingNodes.length} nœud(s) à supprimer pour l'arbre ${documentId}`);
+      strapi.log.info(`🗑️  ${existingNodes.length} nœud(s) à supprimer`);
 
       await Promise.all(
         existingNodes.map((n) =>
@@ -52,13 +99,13 @@ export default factories.createCoreController('api::decision-tree.decision-tree'
         )
       );
 
-      // ── 2. Supprimer les liens existants liés à cet arbre ────────────────
+      // ── 3. Supprimer les liens existants ──────────────────────────────────
       const existingEdges = await strapi.documents('api::decision-edge.decision-edge').findMany({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         filters: { decision_tree: { documentId: { $eq: documentId } } } as any,
       });
 
-      strapi.log.info(`🗑️  ${existingEdges.length} lien(s) à supprimer pour l'arbre ${documentId}`);
+      strapi.log.info(`🗑️  ${existingEdges.length} lien(s) à supprimer`);
 
       await Promise.all(
         existingEdges.map((e) =>
@@ -66,7 +113,7 @@ export default factories.createCoreController('api::decision-tree.decision-tree'
         )
       );
 
-      // ── 3. Créer les nouveaux nœuds ───────────────────────────────────────
+      // ── 4. Créer les nouveaux nœuds ───────────────────────────────────────
       await Promise.all(
         nodes.map((node) =>
           strapi.documents('api::decision-node.decision-node').create({
@@ -84,7 +131,7 @@ export default factories.createCoreController('api::decision-tree.decision-tree'
         )
       );
 
-      // ── 4. Créer les nouveaux liens ───────────────────────────────────────
+      // ── 5. Créer les nouveaux liens ───────────────────────────────────────
       await Promise.all(
         edges.map((edge) =>
           strapi.documents('api::decision-edge.decision-edge').create({
@@ -100,22 +147,22 @@ export default factories.createCoreController('api::decision-tree.decision-tree'
         )
       );
 
-      // ── 5. Publier l'arbre (idempotent — sans erreur si déjà publié) ──────
+      // ── 6. Publier l'arbre ────────────────────────────────────────────────
       try {
         await strapi.documents('api::decision-tree.decision-tree').publish({ documentId });
-      } catch (publishErr) {
-        // Déjà publié ou autre état non bloquant
-        strapi.log.warn(`publish skipped for ${documentId}: ${publishErr}`);
+      } catch {
+        strapi.log.warn(`publish skipped for ${documentId} — déjà publié ou état non bloquant`);
       }
 
       strapi.log.info(`✅ Arbre sauvegardé : ${documentId} — ${nodes.length} nœud(s), ${edges.length} lien(s)`);
 
-      // ── 6. Répondre avec un succès minimal ────────────────────────────────
+      // ── 7. Répondre avec les informations essentielles ────────────────────
       return ctx.send({
         data: {
           documentId,
-          nodesCount: nodes.length,
-          edgesCount:  edges.length,
+          nodesCount:     nodes.length,
+          edgesCount:     edges.length,
+          incidentTypeId: incidentTypeId ?? null,
         },
       });
 
