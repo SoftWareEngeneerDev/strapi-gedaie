@@ -818,6 +818,7 @@ export interface ApiTargetTarget extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     description: Schema.Attribute.Text;
+    externalRef: Schema.Attribute.String;
     incident_types: Schema.Attribute.Relation<
       'oneToMany',
       'api::incident-type.incident-type'
@@ -831,6 +832,7 @@ export interface ApiTargetTarget extends Struct.CollectionTypeSchema {
     name: Schema.Attribute.String & Schema.Attribute.Required;
     publishedAt: Schema.Attribute.DateTime;
     slug: Schema.Attribute.UID<'name'>;
+    targetType: Schema.Attribute.Enumeration<['device', 'product']>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

@@ -23,6 +23,13 @@
     "description": {
       "type": "text"
     },
+    "externalRef": {
+      "type": "string"
+    },
+    "targetType": {
+      "type": "enumeration",
+      "enum": ["device", "product"]
+    },
     "incident_types": {
       "type": "relation",
       "relation": "oneToMany",
